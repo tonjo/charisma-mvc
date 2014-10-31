@@ -65,7 +65,8 @@ $(document).ready(function () {
 
     //ajax menu checkbox
     $('#is-ajax').click(function (e) {
-        $.cookie('is-ajax', $(this).prop('checked'), {expires: 365});
+        // changed default cookie path to '/' (all site)
+        $.cookie('is-ajax', $(this).prop('checked'), {path: '/',expires: 365});
     });
     $('#is-ajax').prop('checked', $.cookie('is-ajax') === 'true' ? true : false);
 
