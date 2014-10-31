@@ -1,0 +1,26 @@
+{
+    "name": "tonjo/charisma-mvc",
+    "type": "project",
+    "description": "A PHP MVC boilerplate combined with charisma template",
+    "keywords": ["mvc", "skeleton", "boilerplate", "naked", "barebone", "application", "charisma"],
+    "homepage": "https://github.com/tonjo/charisma-mvc",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "tonjo",
+            "homepage": "http://antoniomignolli.it",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/tonjo/charisma-mvc/issues",
+        "source": "https://github.com/tonjo/charisma-mvc"
+    },
+    "require": {
+        "php": ">=5.3.7",
+        "twig/twig": "1.*"
+    },
+    "require-dev": {
+        "panique/laravel-sass": "dev-master"
+    }
+}

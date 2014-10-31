@@ -1,0 +1,40 @@
+{% extends '_templates/base.twig' %}
+{% set breadcrumb_position = 'Gallery' %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2><i class="glyphicon glyphicon-picture"></i> Gallery</h2>
+
+                    <div class="box-icon">
+                        <a href="#" class="btn btn-setting btn-round btn-default"><i
+                                class="glyphicon glyphicon-cog"></i></a>
+                        <a href="#" class="btn btn-minimize btn-round btn-default"><i
+                                class="glyphicon glyphicon-chevron-up"></i></a>
+                        <a href="#" class="btn btn-close btn-round btn-default"><i
+                                class="glyphicon glyphicon-remove"></i></a>
+                    </div>
+                </div>
+                <div class="box-content">
+                    <br>
+                    <ul class="thumbnails gallery">
+                        {% for i in 1..24 %}
+                            <li id="image-{{ i }}" class="thumbnail">
+                                <a style="background:url(https://raw.githubusercontent.com/usmanhalalit/charisma/1.x/img/gallery/thumbs/{{ i }}.jpg)"
+                                   title="Sample Image {{ i }}" href="https://raw.githubusercontent.com/usmanhalalit/charisma/1.x/img/gallery/{{ i }}.jpg"><img
+                                        class="grayscale" src="https://raw.githubusercontent.com/usmanhalalit/charisma/1.x/img/gallery/thumbs/{{ i }}.jpg"
+                                        alt="Sample Image {{ i }}"></a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--/span-->
+
+    </div><!--/row-->
+
+{% endblock content %}
