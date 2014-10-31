@@ -231,6 +231,7 @@ class OneFileLogin
             return false;
         }
 
+        $query->bindValue(':user_name', $user_name);
         $query->execute();
 
         // Btw that's the weird way to get num_rows in PDO with SQLite:
