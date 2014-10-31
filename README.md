@@ -18,12 +18,6 @@ Common techniques are a) downloading and extracting the .zip / .tgz by hand, b) 
 git clone https://github.com/tonjo/charisma-mvc /var/www
 ```
 
-or c) getting the repo via Composer (here we copy into var/www)
-
-```
-composer create-project panique/charisma-mvc /var/www dev-master
-```
-
 3. Install mod_rewrite, for example by following this guideline:
 [How to install mod_rewrite in Ubuntu](http://www.dev-metal.com/enable-mod_rewrite-ubuntu-12-04-lts/)
 
@@ -100,6 +94,6 @@ and [Getting started with Composer](http://www.dev-metal.com/getting-started-com
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache 2 License.
 This means you can use and modify it for free in private or commercial projects.
 
