@@ -31,12 +31,9 @@ class Application
         $auth = new OneFileLogin();
         $auth->performUserLoginAction();
 
-        // If not authenticated and action is not authentication itself, authenticate
-        if (! $auth->isAuthenticated() && $this->url_controller.'/'.$this->url_action != 'login/authenticate') {
-            require './application/controller/login.php';
-            $login = new Login();
-            $login->index();
-            return;
+        // If not authenticated and action is not a login (or authentication) itself, then authenticate
+        if (! $auth->isAuthenticated() && $this->url_controller != 'login') {
+            header('Location: '.URL.'login');
         }
 
         // check for controller: does such a controller exist ?

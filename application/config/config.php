@@ -37,6 +37,20 @@ define('DB_NAME', 'charisma-mvc.db');
 // define('DB_PASS', 'mysql');
 
 /**
+ * Ranks. The lower the rank, the higher the power.
+ * Imagine having three ranks:
+ * define('ADMIN_RANK',0);
+ * define('MANAGER_RANK',1);
+ * define('EDITOR_RANK',2);
+ * define('USER_RANK',3);
+ * Checking if a user is at least Editor would be:
+ * if ($rank <= EDITOR_RANK) ...
+ */
+define('ADMIN_RANK',0);
+define('USER_RANK',1);
+define('DEFAULT_RANK',USER_RANK);
+
+/**
  * Configuration for: Views
  *
  * PATH_VIEWS is the path where your view files are. Don't forget the trailing slash!

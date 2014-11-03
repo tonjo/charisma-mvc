@@ -69,9 +69,4 @@ class Home extends Controller
         $this->render('home/error');
     }
 
-    public function login()
-    {
-        $this->render('home/login');
-    }
-
 }

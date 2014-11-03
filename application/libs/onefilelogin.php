@@ -219,7 +219,7 @@ class OneFileLogin
     public function checkPassword($user_name,$user_password)
     {
         // remember: the user can log in with username or email address
-        $sql = 'SELECT user_name, user_email, user_password_hash
+        $sql = 'SELECT user_name, user_email, user_password_hash, user_rank
                 FROM users
                 WHERE user_name = :user_name OR user_email = :user_name
                 LIMIT 1';
@@ -230,7 +230,6 @@ class OneFileLogin
             $this->feedback = "Empty or invalid users table";
             return false;
         }
-
         $query->bindValue(':user_name', $user_name);
         $query->execute();
 
@@ -248,6 +247,7 @@ class OneFileLogin
                 $_SESSION['user_name'] = $result_row->user_name;
                 $_SESSION['user_email'] = $result_row->user_email;
                 $_SESSION['user_is_logged_in'] = true;
+                $_SESSION['user_rank'] = $result_row->user_rank;
                 $this->user_is_logged_in = true;
                 return true;
             } else {
@@ -320,7 +320,7 @@ class OneFileLogin
         return false;
     }
 
-    private function createNewUser_common($user_name,$user_email,$user_password) {
+    private function createNewUser_common($user_name,$user_email,$user_password,$user_rank) {
         // remove html code etc. from username and email
         $user_name = htmlentities($user_name, ENT_QUOTES);
         $user_email = htmlentities($user_email, ENT_QUOTES);
@@ -342,12 +342,13 @@ class OneFileLogin
         if ($result_row) {
             $this->feedback = "Sorry, that username / email is already taken. Please choose another one.";
         } else {
-            $sql = 'INSERT INTO users (user_name, user_password_hash, user_email)
-                    VALUES(:user_name, :user_password_hash, :user_email)';
+            $sql = 'INSERT INTO users (user_name, user_password_hash, user_email, user_rank)
+                    VALUES(:user_name, :user_password_hash, :user_email, :user_rank)';
             $query = $this->db_connection->prepare($sql);
             $query->bindValue(':user_name', $user_name);
             $query->bindValue(':user_password_hash', $user_password_hash);
             $query->bindValue(':user_email', $user_email);
+            $query->bindValue(':user_rank', $user_rank);
             // PDO's execute() gives back TRUE when successful, FALSE when not
             // @link http://stackoverflow.com/q/1661863/1114320
             $registration_success_state = $query->execute();
@@ -373,17 +374,18 @@ class OneFileLogin
         $user_name = $_POST['user_name'];
         $user_email = $_POST['user_email'];
         $user_password = $_POST['user_password_new'];
-        $this->createNewUser_common($user_name,$user_email,$user_password);
+        $user_rank = DEFAULT_RANK; // default user rank.
+        $this->createNewUser_common($user_name,$user_email,$user_password,$user_rank);
     }
 
     /**
      * PUBLIC creation of users.
      * Uses createNewUser_common then.
      */
-    public function createUser($username,$email,$password)
+    public function createUser($username,$email,$password,$rank)
     {
         $this->createDatabaseConnection();
-        $this->createNewUser_common($username,$email,$password);
+        $this->createNewUser_common($username,$email,$password,$rank);
     }
 
     /**
