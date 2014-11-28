@@ -59,3 +59,31 @@ define('DEFAULT_RANK',USER_RANK);
 define('PATH_VIEWS', 'application/views/');
 define('PATH_VIEW_FILE_TYPE', '.twig');
 
+/**
+ * Configuration for: Database
+ * This is the place where you define your database credentials, database type etc.
+ */
+
+/**
+ *  APP-specific config
+ *
+ */
+define('ADMIN_RANK',0);
+define('USER_RANK',1);
+define('DEFAULT_RANK',USER_RANK);
+
+// Enable access log in `log` table.
+define('ACCESS_LOG_ENABLED',true);
+
+// Upload dir
+define('UPLOAD','upload');
+
+// Mail configuration
+// define('SMTP_HOST','localhost');
+// define('SMTP_PORT',25);
+// define('SMTP_AUTH',false);              // Enable SMTP authentication
+// define('SMTP_USERNAME','');
+// define('SMTP_PASSWORD','');
+// define('SMTP_SECURE','');               // `tls` or `ssl`
+// define('SMTP_FROM','charisma-mvc@localhost');
+// define('SMTP_FROM_NAME','Charisma MVC');

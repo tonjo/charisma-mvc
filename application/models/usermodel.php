@@ -1,41 +1,24 @@
 <?php
-
-    error_reporting(E_ALL);
 /**
- * Class OneFileLoginApplication
+ * Class UserModel
  *
- * An entire php application with user registration, login and logout in one file.
+ * Derived from Panique's One File Login
+ *
  * Uses very modern password hashing via the PHP 5.5 password hashing functions.
  * This project includes a compatibility file to make these functions available in PHP 5.3.7+ and PHP 5.4+.
  *
  * @author Panique
- * @link https://github.com/panique/php-login-one-file/
- * @license http://opensource.org/licenses/MIT MIT License
+ * @author tonjo
+ * @link https://github.com/tonjo/charisma-mvc
+ * @license http://opensource.org/licenses/Apache-2.0 Apache License
  */
 
 // Set the relative path of SQLite DB, from this directory
 define ('DB_RELATIVE_PATH','./');
 define ('DB_FULL_PATH',DB_RELATIVE_PATH . DB_NAME);
 
-class OneFileLogin
+class UserModel
 {
-    /**
-     * @var string Type of used database (currently only SQLite, but feel free to expand this with mysql etc)
-     */
-    private $db_type = "sqlite"; //
-
-    /**
-     * @var string Path of the database file (create this with _install.php)
-     */
-
-    // Define DB_FULL_PATH (and DB_RELATIVE_PATH) on top
-    private $db_sqlite_path = DB_FULL_PATH;
-
-    /**
-     * @var object Database connection
-     */
-    private $db_connection = null;
-
     /**
      * @var bool Login status of user
      */
@@ -46,82 +29,28 @@ class OneFileLogin
      */
     public $feedback = "";
 
-
     /**
-     * Does necessary checks for PHP version and PHP password compatibility library and runs the application
+     * Even if the generic controller handles DB connection, UserModel needs its own
+     * connection handling because we need it before calling any controller.
      */
     public function __construct()
     {
-        if (! $this->performMinimumRequirementsCheck())
-            return NULL;
+        if (DB_TYPE === 'sqlite') {
+            try {
+                $this->db = new PDO(DB_TYPE . ':' . DB_NAME, '','');
+                $this->db->exec('PRAGMA foreign_keys = ON');
+            } catch (PDOException $e) {
+                die('ERRORE nell\'apertura del database');
+            }
+        } else die('Solo DB di tipo sqlite correntemente supportato (onefilephplogin)');
+
     }
 
     // public function test_users_table() {
     //     $sql = 'SELECT user_name FROM users';
-    //     $Nusers = count($this->db_connection->query($sql));
+    //     $Nusers = count($this->db->query($sql));
     //     return $Nusers;
     // }
-
-    /**
-     * Performs a check for minimum requirements to run this application.
-     * Does not run the further application when PHP version is lower than 5.3.7
-     * Does include the PHP password compatibility library when PHP version lower than 5.5.0
-     * (this library adds the PHP 5.5 password hashing functions to older versions of PHP)
-     * @return bool Success status of minimum requirements check, default is false
-     */
-    private function performMinimumRequirementsCheck()
-    {
-        if (version_compare(PHP_VERSION, '5.3.7', '<')) {
-            echo "Sorry, Simple PHP Login does not run on a PHP version older than 5.3.7 !";
-        } elseif (version_compare(PHP_VERSION, '5.5.0', '<')) {
-            require_once("application/libs/password_compatibility_library.php");
-            return true;
-        } elseif (version_compare(PHP_VERSION, '5.5.0', '>=')) {
-            return true;
-        }
-        // default return
-        return false;
-    }
-
-    /**
-     * This is basically the controller that handles the entire flow of the application.
-     */
-    public function runApplication()
-    {
-        // check is user wants to see register page (etc.)
-        if (isset($_GET["action"]) && $_GET["action"] == "register") {
-            $this->doRegistration();
-            $this->showPageRegistration();
-        } else {
-            // start the session, always needed!
-            $this->doStartSession();
-            // check for possible user interactions (login with session/post data or logout)
-            $this->performUserLoginAction();
-            // show "page", according to user's login status
-            if ($this->isAuthenticated()) {
-                $this->showPageLoggedIn();
-            } else {
-                $this->showPageLoginForm();
-            }
-        }
-    }
-
-    /**
-     * Creates a PDO database connection (in this case to a SQLite flat-file database)
-     * @return bool Database creation success status, false by default
-     */
-    private function createDatabaseConnection()
-    {
-        try {
-            $this->db_connection = new PDO($this->db_type . ':' . $this->db_sqlite_path);
-            return true;
-        } catch (PDOException $e) {
-            $this->feedback = "HERE: ".__FILE__."PDO database connection problem: " . $e->getMessage();
-        } catch (Exception $e) {
-            $this->feedback = "General problem: " . $e->getMessage();
-        }
-        return false;
-    }
 
     /**
      * Handles the flow of the login/logout process. According to the circumstances, a logout, a login with session
@@ -141,15 +70,6 @@ class OneFileLogin
     }
 
     /**
-     * Simply starts the session.
-     * It's cleaner to put this into a method than writing it directly into runApplication()
-     */
-    private function doStartSession()
-    {
-        session_start();
-    }
-
-    /**
      * Set a marker (NOTE: is this method necessary ?)
      */
     private function doLoginWithSessionData()
@@ -162,11 +82,8 @@ class OneFileLogin
      */
     private function doLoginWithPostData()
     {
-        if ($this->checkLoginFormDataNotEmpty()) {
-            if ($this->createDatabaseConnection()) {
-                $this->checkPasswordCorrectnessAndLogin();
-            }
-        }
+        if ($this->checkLoginFormDataNotEmpty())
+            $this->checkPasswordCorrectnessAndLogin();
     }
 
     /**
@@ -174,22 +91,32 @@ class OneFileLogin
      */
     public function doLogout()
     {
+        if (ACCESS_LOG_ENABLED && isset($_SESSION['log_id']))
+            $log_id = $_SESSION['log_id'];
+        else $log_id = 0;
+
         $_SESSION = array();
         session_destroy();
         $this->user_is_logged_in = false;
-        $this->feedback = "You were just logged out.";
+        $this->feedback = "Logout effettuato.";
+
+        if ($log_id) {
+            $sql = "UPDATE log set last_logout = datetime('now') WHERE id = :log_id";
+            $query = $this->db->prepare($sql);
+            $query->bindValue(':log_id',$log_id);
+            $query->execute(); // Not caring errors, not giving feedback
+            unset($_SESSION['log_id']);
+        }
     }
 
     /**
      * The registration flow
      * @return bool
      */
-    private function doRegistration()
+    public function doRegistration()
     {
         if ($this->checkRegistrationData()) {
-            if ($this->createDatabaseConnection()) {
-                $this->createNewUser();
-            }
+            return $this->createUser_POST();
         }
         // default return
         return false;
@@ -212,22 +139,27 @@ class OneFileLogin
         return false;
     }
 
+
     /**
      * Checks if user exits, if so: check if provided password matches the one in the database
+     * Provide an array with data, used for fill SESSION vars
+     * @param string $user_name
+     * @param string $user_password
+     * @param array (optional) $result_row
      * @return bool User login success status
      */
-    public function checkPassword($user_name,$user_password)
+    public function checkPassword($user_name,$user_password,& $result_row =NULL)
     {
         // remember: the user can log in with username or email address
-        $sql = 'SELECT user_name, user_email, user_password_hash, user_rank
+        $sql = 'SELECT user_id, user_name, user_email, user_password_hash, user_rank
                 FROM users
                 WHERE user_name = :user_name OR user_email = :user_name
                 LIMIT 1';
 
-        $query = $this->db_connection->prepare($sql);
+        $query = $this->db->prepare($sql);
 
         if (! $query) {
-            $this->feedback = "Empty or invalid users table";
+            $this->feedback = "Tabella utenti inesistente";
             return false;
         }
         $query->bindValue(':user_name', $user_name);
@@ -243,12 +175,6 @@ class OneFileLogin
         if ($result_row) {
             // using PHP 5.5's password_verify() function to check password
             if (password_verify($user_password, $result_row->user_password_hash)) {
-                // write user data into PHP SESSION [a file on your server]
-                $_SESSION['user_name'] = $result_row->user_name;
-                $_SESSION['user_email'] = $result_row->user_email;
-                $_SESSION['user_is_logged_in'] = true;
-                $_SESSION['user_rank'] = $result_row->user_rank;
-                $this->user_is_logged_in = true;
                 return true;
             } else {
                 $this->feedback = "Wrong password.";
@@ -263,10 +189,30 @@ class OneFileLogin
     /**
      * Uses checkPassword above passing POST vars.
      */
-
     private function checkPasswordCorrectnessAndLogin()
     {
-        return $this->checkPassword($_POST['user_name'],$_POST['user_password']);
+        if ($this->checkPassword($_POST['user_name'],$_POST['user_password'],$result_row)) {
+            // write user data into PHP SESSION [a file on your server]
+            $_SESSION['user_id'] = $result_row->user_id;
+            $_SESSION['user_name'] = $result_row->user_name;
+            $_SESSION['user_email'] = $result_row->user_email;
+            $_SESSION['user_is_logged_in'] = true;
+            $_SESSION['user_rank'] = $result_row->user_rank;
+            $this->user_is_logged_in = true;
+            if (ACCESS_LOG_ENABLED) {
+                $sql = "INSERT INTO log (user_email,from_ip) VALUES (:user_email,:from_ip)";
+                $query = $this->db->prepare($sql);
+                $query->bindValue(':user_email',$_SESSION['user_email']);
+                if (isset($_SERVER['REMOTE_ADDR']))
+                    $remote = $_SERVER['REMOTE_ADDR'];
+                else $remote = '';
+                $query->bindValue(':from_ip',$remote);
+                $query->execute();
+                $_SESSION['log_id'] = $this->db->lastInsertId();
+            }
+            return true;
+        } else
+            return false;
     }
 
     /**
@@ -320,7 +266,15 @@ class OneFileLogin
         return false;
     }
 
-    private function createNewUser_common($user_name,$user_email,$user_password,$user_rank) {
+    /**
+     * Creates a new user.
+     * @param string $user_name
+     * @param string $user_email
+     * @param string $user_password
+     * @param integer $user_rank
+     * @return bool Success status of user registration
+     */
+    public function createUser($user_name,$user_email,$user_password,$user_rank) {
         // remove html code etc. from username and email
         $user_name = htmlentities($user_name, ENT_QUOTES);
         $user_email = htmlentities($user_email, ENT_QUOTES);
@@ -331,7 +285,7 @@ class OneFileLogin
         $user_password_hash = password_hash($user_password, PASSWORD_DEFAULT);
 
         $sql = 'SELECT * FROM users WHERE user_name = :user_name OR user_email = :user_email';
-        $query = $this->db_connection->prepare($sql);
+        $query = $this->db->prepare($sql);
         $query->bindValue(':user_name', $user_name);
         $query->bindValue(':user_email', $user_email);
         $query->execute();
@@ -344,7 +298,7 @@ class OneFileLogin
         } else {
             $sql = 'INSERT INTO users (user_name, user_password_hash, user_email, user_rank)
                     VALUES(:user_name, :user_password_hash, :user_email, :user_rank)';
-            $query = $this->db_connection->prepare($sql);
+            $query = $this->db->prepare($sql);
             $query->bindValue(':user_name', $user_name);
             $query->bindValue(':user_password_hash', $user_password_hash);
             $query->bindValue(':user_email', $user_email);
@@ -365,27 +319,16 @@ class OneFileLogin
     }
 
     /**
-     * Creates a new user.
+     * Creates a new user calling createUser above and POST vars
      * @return bool Success status of user registration
-     * Has been split with a common part createNewUser_common
      */
-    private function createNewUser()
+    private function createUser_POST()
     {
         $user_name = $_POST['user_name'];
         $user_email = $_POST['user_email'];
         $user_password = $_POST['user_password_new'];
         $user_rank = DEFAULT_RANK; // default user rank.
-        $this->createNewUser_common($user_name,$user_email,$user_password,$user_rank);
-    }
-
-    /**
-     * PUBLIC creation of users.
-     * Uses createNewUser_common then.
-     */
-    public function createUser($username,$email,$password,$rank)
-    {
-        $this->createDatabaseConnection();
-        $this->createNewUser_common($username,$email,$password,$rank);
+        return $this->createUser($user_name,$user_email,$user_password,$user_rank);
     }
 
     /**
@@ -398,72 +341,79 @@ class OneFileLogin
     }
 
     /**
-     * Simple demo-"page" that will be shown when the user is logged in.
-     * In a real application you would probably include an html-template here, but for this extremely simple
-     * demo the "echo" statements are totally okay.
-     */
-    private function showPageLoggedIn()
-    {
-        if ($this->feedback) {
-            echo $this->feedback . "<br/><br/>";
-        }
-
-        echo 'Hello ' . $_SESSION['user_name'] . ', you are logged in.<br/><br/>';
-        echo '<a href="' . $_SERVER['SCRIPT_NAME'] . '?action=logout">Log out</a>';
+     *  Normal users (no admins)
+     *  @return array of object
+     **/
+    public function get_users() {
+        $res = $this->db->query("SELECT * FROM users WHERE user_rank>0");
+        return $res->fetchAll(PDO::FETCH_OBJ);
     }
 
     /**
-     * Simple demo-"page" with the login form.
-     * In a real application you would probably include an html-template here, but for this extremely simple
-     * demo the "echo" statements are totally okay.
-     */
-    private function showPageLoginForm()
-    {
-        if ($this->feedback) {
-            echo $this->feedback . "<br/><br/>";
-        }
-
-        echo '<h2>Login</h2>';
-
-        echo '<form method="post" action="' . $_SERVER['SCRIPT_NAME'] . '" name="loginform">';
-        echo '<label for="login_input_username">Username (or email)</label> ';
-        echo '<input id="login_input_username" type="text" name="user_name" required /> ';
-        echo '<label for="login_input_password">Password</label> ';
-        echo '<input id="login_input_password" type="password" name="user_password" required /> ';
-        echo '<input type="submit"  name="login" value="Log in" />';
-        echo '</form>';
-
-        echo '<a href="' . $_SERVER['SCRIPT_NAME'] . '?action=register">Register new account</a>';
+     *  Get single user
+     *  @return object
+     **/
+    public function get_user($userID) {
+        $sql = "SELECT * FROM users WHERE user_id = :user_id";
+        $q = $this->db->prepare($sql);
+        $q->bindValue(':user_id',$userID);
+        $res = $q->execute();
+        if ($res)
+            return $q->fetch(PDO::FETCH_OBJ);
+        else
+            return false;
     }
 
     /**
-     * Simple demo-"page" with the registration form.
-     * In a real application you would probably include an html-template here, but for this extremely simple
-     * demo the "echo" statements are totally okay.
-     */
-    private function showPageRegistration()
-    {
-        if ($this->feedback) {
-            echo $this->feedback . "<br/><br/>";
+     *  Delete user
+     *  @param integer $userID
+     *  @return boolean whether deletion was successful
+     **/
+    public function delete_user($userID) {
+        $sql = "DELETE FROM users WHERE user_id = :user_id";
+        $q = $this->db->prepare($sql);
+        $q->bindValue(':user_id',$userID);
+        $res = $q->execute();
+        $this->feedback = $q->errorInfo()[2];
+        return $res;
+    }
+
+    /**
+     *  Set user's password
+     *  @param string $user_name
+     *  @param string $new_password
+     *  @return boolean whether successful
+     **/
+    public function set_psw($user_name,$new_password) {
+        if (strlen($new_password) < 6) {
+            $this->feedback = "La password deve avere almeno 6 caratteri";
+            return false;
         }
 
-        echo '<h2>Registration</h2>';
-
-        echo '<form method="post" action="' . $_SERVER['SCRIPT_NAME'] . '?action=register" name="registerform">';
-        echo '<label for="login_input_username">Username (only letters and numbers, 2 to 64 characters)</label>';
-        echo '<input id="login_input_username" type="text" pattern="[a-zA-Z0-9]{2,64}" name="user_name" required />';
-        echo '<label for="login_input_email">User\'s email</label>';
-        echo '<input id="login_input_email" type="email" name="user_email" required />';
-        echo '<label for="login_input_password_new">Password (min. 6 characters)</label>';
-        echo '<input id="login_input_password_new" class="login_input" type="password" name="user_password_new" pattern=".{6,}" required autocomplete="off" />';
-        echo '<label for="login_input_password_repeat">Repeat password</label>';
-        echo '<input id="login_input_password_repeat" class="login_input" type="password" name="user_password_repeat" pattern=".{6,}" required autocomplete="off" />';
-        echo '<input type="submit" name="register" value="Register" />';
-        echo '</form>';
-
-        echo '<a href="' . $_SERVER['SCRIPT_NAME'] . '">Homepage</a>';
+        $sql = "UPDATE users SET user_password_hash = :password_hash WHERE user_name = :user_name";
+        $q = $this->db->prepare($sql);
+        $q->bindValue(':user_name',$user_name);
+        $q->bindValue(':password_hash',password_hash($new_password,PASSWORD_DEFAULT));
+        $res = $q->execute();
+        $this->feedback = $q->errorInfo()[2];
+        return $res;
     }
+
+    /**
+     *  Set password for a list of users, using given passwords in clear_psw property
+     *  @param array of objects $userlist
+     *  @return boolean whether successful
+     **/
+    public function set_psw_bulk($userlist) {
+        $this->db->beginTransaction();
+        foreach ($userlist as $u) {
+            $res = $this->set_psw($u->user_name,$u->clear_psw);
+            if (!$res) break;
+        }
+        $this->db->commit();
+        return $res;
+    }
+
 }
 
-// run the application
-// $application = new OneFileLogin();
+?>

@@ -28,12 +28,21 @@ class Application
         $this->splitUrl();
 
         // Check first if user already authenticated
-        $auth = new OneFileLogin();
+        $auth = new UserModel();
         $auth->performUserLoginAction();
 
         // If not authenticated and action is not a login (or authentication) itself, then authenticate
         if (! $auth->isAuthenticated() && $this->url_controller != 'login') {
+            // tnj I prefer redirection in this case
             header('Location: '.URL.'login');
+        }
+
+        // If authenticated and action is a login BUT NOT a logout, then redirect to home
+        if ($auth->isAuthenticated() && $this->url_controller == 'login' && $this->url_action != 'logout') {
+            // tnj I prefer redirection in this case
+            header('Location: '.URL.'home');
+            // $this->url_controller = 'home';
+            // $this->url_action = '';
         }
 
         // check for controller: does such a controller exist ?
@@ -67,9 +76,11 @@ class Application
             }
         } else {
             // invalid URL, so simply show home/index
-            require './application/controller/home.php';
-            $home = new Home();
-            $home->index();
+            // require './application/controller/home.php';
+            // $home = new Home();
+            // $home->index();
+            // tnj I prefer redirection in this case
+            header('Location: '.URL.'home');
         }
     }
 
