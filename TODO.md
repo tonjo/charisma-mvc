@@ -1,7 +1,10 @@
 TODO
 ====
 
-  - Think basic language switch !
+  - Localization in TWIG templates!
+  - import leftemnu_admin and something like that
+    (maybe separate charisma original twig files)
+
   - ADD maybe RedBean SQLite ORM support (nice, clean, fast, easy)
   - UI ISSUES: uploadify NOT WORKING (Check HTML page source, maybe Apache and rewrite issues)
   - Test with requirement not satisfied in constructor (PHP < 5.3.7)

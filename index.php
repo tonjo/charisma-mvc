@@ -10,6 +10,12 @@
  * @license http://opensource.org/licenses/MIT MIT License
  */
 
+// load helper functions
+require 'application/config/util.php';
+
+if (($req = performMinimumRequirementsCheck()) !== true)
+    die($req);
+
 // load the (optional) Composer auto-loader
 if (file_exists('vendor/autoload.php')) {
     require 'vendor/autoload.php';
@@ -24,11 +30,19 @@ require 'application/config/config.php';
 // load application class
 require 'application/libs/application.php';
 require 'application/libs/controller.php';
-require 'application/libs/onefilelogin.php';
+
+// load GenericModel class
+require 'application/models/genericmodel.php';
+
+// load UserModel class
+require 'application/models/usermodel.php';
+
+// load PHPMailer autoloader class
+//require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
 
 // run the scss compiler every you the application is hit (in development)
 // TODO: build a switch for development/production
-SassCompiler::run("public/scss/", "public/css/");
+// SassCompiler::run("public/scss/", "public/css/");
 
 // start the application
 $app = new Application();

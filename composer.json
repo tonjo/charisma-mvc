@@ -18,7 +18,8 @@
     },
     "require": {
         "php": ">=5.3.7",
-        "twig/twig": "1.*"
+        "twig/twig": "1.*",
+        "twig/extensions": "~1.1.0"
     },
     "require-dev": {
         "panique/laravel-sass": "dev-master"

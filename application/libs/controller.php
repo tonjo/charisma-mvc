@@ -81,6 +81,7 @@ class Controller
         $twig = new Twig_Environment($twig_loader);
         $twig->getExtension('core')->setTimezone('Europe/Rome');
         // $twig->addExtension(new Twig_Extensions_Extension_Intl());
+        // $twig->addExtension(new Twig_Extensions_Extension_I18n());
         // render a view while passing the to-be-rendered data
         echo $twig->render($view . PATH_VIEW_FILE_TYPE, $data_array);
     }

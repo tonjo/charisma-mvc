@@ -40,9 +40,9 @@ class UserModel
                 $this->db = new PDO(DB_TYPE . ':' . DB_NAME, '','');
                 $this->db->exec('PRAGMA foreign_keys = ON');
             } catch (PDOException $e) {
-                die('ERRORE nell\'apertura del database');
+                die(_('ERROR opening database'));
             }
-        } else die('Solo DB di tipo sqlite correntemente supportato (onefilephplogin)');
+        } else die(_('Only sqlite type DB supported (for onefilephplogin)'));
 
     }
 
@@ -104,7 +104,7 @@ class UserModel
             $sql = "UPDATE log set last_logout = datetime('now','localtime') WHERE id = :log_id";
             $query = $this->db->prepare($sql);
             if (!$query) {
-                $this->feedback='Error, log table not present or corrupt';
+                $this->feedback=_('Error, log table not present or corrupt');
                 return false;
             }
             $query->bindValue(':log_id',$log_id);
@@ -135,9 +135,9 @@ class UserModel
         if (!empty($_POST['user_name']) && !empty($_POST['user_password'])) {
             return true;
         } elseif (empty($_POST['user_name'])) {
-            $this->feedback = "Username field was empty.";
+            $this->feedback = _('Username field was empty.');
         } elseif (empty($_POST['user_password'])) {
-            $this->feedback = "Password field was empty.";
+            $this->feedback = _('Password field was empty.');
         }
         // default return
         return false;
@@ -163,7 +163,7 @@ class UserModel
         $query = $this->db->prepare($sql);
 
         if (! $query) {
-            $this->feedback = "Tabella utenti inesistente";
+            $this->feedback = _('Users table nonexistent or corrupt');
             return false;
         }
         $query->bindValue(':user_name', $user_name);
@@ -181,10 +181,10 @@ class UserModel
             if (password_verify($user_password, $result_row->user_password_hash)) {
                 return true;
             } else {
-                $this->feedback = "Wrong password.";
+                $this->feedback = _('Wrong password.');
             }
         } else {
-            $this->feedback = "This user does not exist.";
+            $this->feedback = _('This user does not exist.');
         }
         // default return
         return false;
@@ -200,7 +200,7 @@ class UserModel
         else $remoteIP = '';
 
         if (!$this->check_user_access($_POST['user_name'],$remoteIP)) {
-            $this->feedback = "User not allowed to login from this network";
+            $this->feedback = _('User not allowed to login from this network');
             return false;
         }
 
@@ -222,7 +222,7 @@ class UserModel
                     $_SESSION['log_id'] = $this->db->lastInsertId();
                 } else
                 // It's "only a log", proceed anyway giving warning
-                    $this->feedback = 'Impossible to record log, invalid or nonexistent log table';
+                    $this->feedback = _('Impossible to record log, invalid or nonexistent log table');
             }
             return true;
         } else
@@ -298,25 +298,25 @@ class UserModel
             // only this case return true, only this case is valid
             return true;
         } elseif (empty($_POST['user_name'])) {
-            $this->feedback = "Empty Username";
+            $this->feedback = _('Empty Username');
         } elseif (empty($_POST['user_password_new']) || empty($_POST['user_password_repeat'])) {
-            $this->feedback = "Empty Password";
+            $this->feedback = _('Empty Password');
         } elseif ($_POST['user_password_new'] !== $_POST['user_password_repeat']) {
-            $this->feedback = "Password and password repeat are not the same";
+            $this->feedback = _('Password and password repeat are not the same');
         } elseif (strlen($_POST['user_password_new']) < 6) {
-            $this->feedback = "Password has a minimum length of 6 characters";
+            $this->feedback = _('Password has a minimum length of 6 characters');
         } elseif (strlen($_POST['user_name']) > 64 || strlen($_POST['user_name']) < 2) {
-            $this->feedback = "Username cannot be shorter than 2 or longer than 64 characters";
+            $this->feedback = _('Username cannot be shorter than 2 or longer than 64 characters');
         } elseif (!preg_match('/^[a-z\d]{2,64}$/i', $_POST['user_name'])) {
-            $this->feedback = "Username does not fit the name scheme: only a-Z and numbers are allowed, 2 to 64 characters";
+            $this->feedback = _('Username does not fit the name scheme: only a-Z and numbers are allowed, 2 to 64 characters');
         } elseif (empty($_POST['user_email'])) {
-            $this->feedback = "Email cannot be empty";
+            $this->feedback = _('Email cannot be empty');
         } elseif (strlen($_POST['user_email']) > 64) {
-            $this->feedback = "Email cannot be longer than 64 characters";
+            $this->feedback = _('Email cannot be longer than 64 characters');
         } elseif (!filter_var($_POST['user_email'], FILTER_VALIDATE_EMAIL)) {
-            $this->feedback = "Your email address is not in a valid email format";
+            $this->feedback = _('Your email address is not in a valid email format');
         } else {
-            $this->feedback = "An unknown error occurred.";
+            $this->feedback = _('An unknown error occurred.');
         }
 
         // default return
@@ -351,7 +351,7 @@ class UserModel
         // If you meet the inventor of PDO, punch him. Seriously.
         $result_row = $query->fetchObject();
         if ($result_row) {
-            $this->feedback = "Sorry, that username / email is already taken. Please choose another one.";
+            $this->feedback = _('Sorry, that username / email is already taken. Please choose another one.');
         } else {
             $sql = 'INSERT INTO users (user_name, user_password_hash, user_email, user_rank)
                     VALUES(:user_name, :user_password_hash, :user_email, :user_rank)';
@@ -365,10 +365,10 @@ class UserModel
             $registration_success_state = $query->execute();
 
             if ($registration_success_state) {
-                $this->feedback = "Your account has been created successfully. You can now log in.";
+                $this->feedback = _('Your account has been created successfully. You can now log in.');
                 return true;
             } else {
-                $this->feedback = "Sorry, your registration failed. ".$query->errorInfo()[2];
+                $this->feedback = _('Sorry, your registration failed. ').$query->errorInfo()[2];
             }
         }
         // default return
@@ -463,7 +463,7 @@ class UserModel
      **/
     public function set_psw($user_name,$new_password) {
         if (strlen($new_password) < 6) {
-            $this->feedback = "La password deve avere almeno 6 caratteri";
+            $this->feedback = _('Password must be at least 6 characters long');
             return false;
         }
 
