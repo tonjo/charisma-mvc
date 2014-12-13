@@ -14,7 +14,6 @@ class login extends Controller
         $feedback = '';
         $auth_error = '';
         if (! empty($_SESSION)) {
-            // $feedback = $_SESSION['feedback'];
             if (isset($_SESSION['auth_error'])) {
                 $auth_error = $_SESSION['auth_error'];
                 unset ($_SESSION['auth_error']);
@@ -26,25 +25,31 @@ class login extends Controller
 
     public function authenticate()
     {
-        $auth = new OneFileLogin();
+        //*** tnj FROM HERE ***//
+        /* this code is never executed because in application
+           I already checked if authenticated */
+        $users = new UserModel();
         // Uses POST DATA
-        $auth->performUserLoginAction();
-        $_SESSION['feedback'] = $auth->feedback;
-        if ($auth->isAuthenticated()) {
-            header('Location: '.URL.'home');
+        $users->performUserLoginAction();
+        $login_feedback = $users->feedback;
+        if ($users->isAuthenticated()) {
+            if ($login_feedback)
+                // Never seen because of... read above
+                $this->setNotify($login_feedback,'warning');
+            $this->redirect('home');
         }
+        //*** TO HERE ***//
+
         else {
-            // $_SESSION['feedback'] = $auth->feedback;
-            $_SESSION['auth_error'] = $auth->feedback;
-            header('Location: '.URL.'login');
-            // $this->index();
+            $_SESSION['auth_error'] = $users->feedback;
+            $this->redirect('login');
         }
     }
 
     public function logout() {
-        $auth = new OneFileLogin();
-        $auth->doLogout();
-        header('Location: '.URL.'home');
+        $users = new UserModel();
+        $users->doLogout();
+        $this->redirect('home');
     }
 
 }

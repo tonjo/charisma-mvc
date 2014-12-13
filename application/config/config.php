@@ -87,3 +87,21 @@ define('UPLOAD','upload');
 // define('SMTP_SECURE','');               // `tls` or `ssl`
 // define('SMTP_FROM','charisma-mvc@localhost');
 // define('SMTP_FROM_NAME','Charisma MVC');
+
+/*** ACCESS LIMITATION ***/
+// UNCOMMENT WHAT NEEDED
+// FIRST define ranges or subnets for every user type
+// Valid syntax: Usual CIDR like 192.168.0.0/24 or range in the form 192.168.1.50-100
+// NOTE: If you want to specify a single IP, USE /32 AS SUBNET !!!
+
+// $admin_rules = [ '127.0.0.0/8', '192.168.1.0/24' ];
+// $local_user_rules = ['192.168.100.50-100', '172.16.155.10/32'];
+
+// Now associate restrictions with users (REG EXP)
+// $access_rules = [
+//     '/^admin$/' => $admin_rules,
+//     '/^user(.)*/' => $local_user_rules
+// ];
+
+// // Finally, set ACCESS_RULES as json encoded string
+// define('ACCESS_RULES',json_encode($access_rules));

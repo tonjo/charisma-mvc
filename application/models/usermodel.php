@@ -101,8 +101,12 @@ class UserModel
         $this->feedback = "Logout effettuato.";
 
         if ($log_id) {
-            $sql = "UPDATE log set last_logout = datetime('now') WHERE id = :log_id";
+            $sql = "UPDATE log set last_logout = datetime('now','localtime') WHERE id = :log_id";
             $query = $this->db->prepare($sql);
+            if (!$query) {
+                $this->feedback='Error, log table not present or corrupt';
+                return false;
+            }
             $query->bindValue(':log_id',$log_id);
             $query->execute(); // Not caring errors, not giving feedback
             unset($_SESSION['log_id']);
@@ -191,6 +195,15 @@ class UserModel
      */
     private function checkPasswordCorrectnessAndLogin()
     {
+        if (isset($_SERVER['REMOTE_ADDR']))
+            $remoteIP = $_SERVER['REMOTE_ADDR'];
+        else $remoteIP = '';
+
+        if (!$this->check_user_access($_POST['user_name'],$remoteIP)) {
+            $this->feedback = "User not allowed to login from this network";
+            return false;
+        }
+
         if ($this->checkPassword($_POST['user_name'],$_POST['user_password'],$result_row)) {
             // write user data into PHP SESSION [a file on your server]
             $_SESSION['user_id'] = $result_row->user_id;
@@ -202,17 +215,61 @@ class UserModel
             if (ACCESS_LOG_ENABLED) {
                 $sql = "INSERT INTO log (user_email,from_ip) VALUES (:user_email,:from_ip)";
                 $query = $this->db->prepare($sql);
-                $query->bindValue(':user_email',$_SESSION['user_email']);
-                if (isset($_SERVER['REMOTE_ADDR']))
-                    $remote = $_SERVER['REMOTE_ADDR'];
-                else $remote = '';
-                $query->bindValue(':from_ip',$remote);
-                $query->execute();
-                $_SESSION['log_id'] = $this->db->lastInsertId();
+                if ($query) {
+                    $query->bindValue(':user_email',$_SESSION['user_email']);
+                    $query->bindValue(':from_ip',$remoteIP);
+                    $query->execute();
+                    $_SESSION['log_id'] = $this->db->lastInsertId();
+                } else
+                // It's "only a log", proceed anyway giving warning
+                    $this->feedback = 'Impossible to record log, invalid or nonexistent log table';
             }
             return true;
         } else
             return false;
+    }
+
+    /**
+     *  Prevent login if user is one with "local" restrictions and IP not in allowed networks.
+     *  If no restrictions are present, let them pass.
+     *
+     *  @param string $user_name user to be checked
+     *  @param string $remoteIP
+     *  @return boolean true if allowed
+     */
+    function check_user_access($user_name,$remoteIP) {
+        if (!defined('ACCESS_RULES'))
+            return true;
+        $access_rules = json_decode(ACCESS_RULES);
+        if (empty($access_rules))
+            return true;
+        if ($remoteIP) {
+        // If I cannot see which remote IP => deny access
+            // USER RESTRICTIONS
+            $limited_user = false;
+            // Check if the user has access limitations
+            foreach ($access_rules as $user_regex => $user_rules) {
+                $limited_user = preg_match($user_regex,$user_name);
+                if ($limited_user)
+                    break;
+            }
+            if (!$limited_user)
+                return true;
+            // NETWORK RESTRICTIONS
+            // Now $user_rules point at user's specific access rules
+            // IPv6 Not supported => convert localhost to IPv4 manually
+            if ($remoteIP == "::1")
+                $remoteIP = "127.0.0.1";
+            foreach ($user_rules as $subnet) {
+                if (isrange($subnet)) {
+                    if (IPrange_match($remoteIP,$subnet))
+                        return true;
+                } elseif (cidr_match($remoteIP,$subnet))
+                        return true;
+            }
+        }
+        // DEFAULT
+        return false;
     }
 
     /**
@@ -311,7 +368,7 @@ class UserModel
                 $this->feedback = "Your account has been created successfully. You can now log in.";
                 return true;
             } else {
-                $this->feedback = "Sorry, your registration failed. Please go back and try again.";
+                $this->feedback = "Sorry, your registration failed. ".$query->errorInfo()[2];
             }
         }
         // default return
@@ -341,12 +398,32 @@ class UserModel
     }
 
     /**
-     *  Normal users (no admins)
+     *  Get user by rank range
+     *  @return array of object
+     **/
+    public function get_users_by_ranks($min_user_rank,$max_user_rank) {
+        $sql = "SELECT * FROM users WHERE user_rank >= :min_user_rank AND user_rank <= :max_user_rank";
+        $q = $this->db->prepare($sql);
+        $q->bindValue(':min_user_rank',$min_user_rank);
+        $q->bindValue(':max_user_rank',$max_user_rank);
+        $res = $q->execute();
+        return $q->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    /**
+     *  Normal users: no admins, user rank = 2
      *  @return array of object
      **/
     public function get_users() {
-        $res = $this->db->query("SELECT * FROM users WHERE user_rank>0");
-        return $res->fetchAll(PDO::FETCH_OBJ);
+        return $this->get_users_by_ranks(USER_RANK,USER_RANK);
+    }
+
+    /**
+     *  Local users (a subset of users)
+     *  @return array of object
+     **/
+    public function get_local_users() {
+        return $this->get_users_by_ranks(LOCAL_USER_RANK,LOCAL_USER_RANK);
     }
 
     /**
