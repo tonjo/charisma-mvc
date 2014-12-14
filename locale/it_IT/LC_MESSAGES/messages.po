@@ -1,0 +1,116 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: CHARISMA-MVC\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-12-13 16:48+0100\n"
+"PO-Revision-Date: 2014-12-13 16:50+0100\n"
+"Last-Translator: Antonio Mignolli <antoniomignolli AT gmail>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
+"X-Poedit-Basepath: /home/tonjo/srv/ch1/\n"
+"X-Poedit-Language: Italian\n"
+"X-Poedit-Country: ITALY\n"
+"X-Poedit-SearchPath-0: application\n"
+
+#: application/models/usermodel.php:43
+msgid "ERROR opening database"
+msgstr "ERRORE nell'apertura del database"
+
+#: application/models/usermodel.php:45
+msgid "Only sqlite type DB supported (for onefilephplogin)"
+msgstr "Solo DB di tipo sqlite sono supportati (per onefilephplogin)"
+
+#: application/models/usermodel.php:107
+msgid "Error, log table not present or corrupt"
+msgstr "Errore, tabella log inesistente o corrotta"
+
+#: application/models/usermodel.php:138
+msgid "Username field was empty."
+msgstr "Il campo Username è vuoto."
+
+#: application/models/usermodel.php:140
+msgid "Password field was empty."
+msgstr "Il campo Password è vuoto."
+
+#: application/models/usermodel.php:166
+msgid "Users table nonexistent or corrupt"
+msgstr "Tabella users inesistente o corrotta"
+
+#: application/models/usermodel.php:184
+msgid "Wrong password."
+msgstr "Password errata."
+
+#: application/models/usermodel.php:187
+msgid "This user does not exist."
+msgstr "Utente inesistente."
+
+#: application/models/usermodel.php:203
+msgid "User not allowed to login from this network"
+msgstr "Utente non autorizzato a collegarsi da questa rete"
+
+#: application/models/usermodel.php:225
+msgid "Impossible to record log, invalid or nonexistent log table"
+msgstr "Impossibile registrare i log, tabella log inesistente o corrotta"
+
+#: application/models/usermodel.php:301
+msgid "Empty Username"
+msgstr "Username vuoto"
+
+#: application/models/usermodel.php:303
+msgid "Empty Password"
+msgstr "Password vuota"
+
+#: application/models/usermodel.php:305
+msgid "Password and password repeat are not the same"
+msgstr "Password e Ripeti password non sono uguali"
+
+#: application/models/usermodel.php:307
+msgid "Password has a minimum length of 6 characters"
+msgstr "La password deve avere almeno 6 caratteri"
+
+#: application/models/usermodel.php:309
+msgid "Username cannot be shorter than 2 or longer than 64 characters"
+msgstr "Username deve avere una lunghezza compresa tra 2 e 64 caratteri"
+
+#: application/models/usermodel.php:311
+msgid "Username does not fit the name scheme: only a-Z and numbers are allowed, 2 to 64 characters"
+msgstr "Username non valido: solo lettere a-Z e numeri, da 2 a 64 caratteri totali"
+
+#: application/models/usermodel.php:313
+msgid "Email cannot be empty"
+msgstr "Email non può essere vuota"
+
+#: application/models/usermodel.php:315
+msgid "Email cannot be longer than 64 characters"
+msgstr "Email deve avere una lunghezza massima di 64 caratteri"
+
+#: application/models/usermodel.php:317
+msgid "Your email address is not in a valid email format"
+msgstr "Indirizzo email in formato non valido"
+
+#: application/models/usermodel.php:319
+msgid "An unknown error occurred."
+msgstr "Errore generico"
+
+#: application/models/usermodel.php:354
+msgid "Sorry, that username / email is already taken. Please choose another one."
+msgstr "Spiacente, username o email già usato."
+
+#: application/models/usermodel.php:368
+msgid "Your account has been created successfully. You can now log in."
+msgstr "Il tuo account è stato creato. Puoi effettuare il login."
+
+#: application/models/usermodel.php:371
+msgid "Sorry, your registration failed. "
+msgstr "Spiacente, la tua registrazione è fallita."
+
+#: application/models/usermodel.php:466
+msgid "Password must be at least 6 characters long"
+msgstr "La Password deve avere almeno 6 caratteri"
+
+#~ msgid "Fucking test"
+#~ msgstr "Test del cazzo è è"
