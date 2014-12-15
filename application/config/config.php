@@ -18,21 +18,21 @@ ini_set("display_errors", 1);
  * Configuration for: Locale
  */
 
-// $locale = 'it_IT.UTF-8';
-// putenv("LC_ALL=".$locale);
-// setlocale(LC_ALL, $locale);
-// $messages="messages";
-// bindtextdomain($messages, "locale");
+$locale = 'it_IT.UTF-8';
+putenv("LC_ALL=".$locale);
+setlocale(LC_ALL, $locale);
+$messages="messages";
+bindtextdomain($messages, "./locale");
 // bind_textdomain_codeset($messages, 'UTF-8');
-// textdomain($messages);
+textdomain($messages);
 
 /**
  * Configuration for: Project URL
  * Put your URL here, for local development "127.0.0.1" or "localhost" (plus sub-folder) is fine
 * Leave the $_SERVER line if you want an "adaptive" URL scheme
  */
-// define('URL', 'http://127.0.0.1/charisma-mvc/');
-define('URL', 'http://'.$_SERVER['HTTP_HOST'].'/charisma-mvc/');
+// define('URL', 'http://127.0.0.1/ch1/');
+define('URL', 'http://'.$_SERVER['HTTP_HOST'].'/ch1/');
 
 /**
  * Configuration for: Database
@@ -41,12 +41,12 @@ define('URL', 'http://'.$_SERVER['HTTP_HOST'].'/charisma-mvc/');
 
 // SQLite example: no DB_HOST, DB_USER and DB_PASS, just DB_TYPE and DB_NAME
 define('DB_TYPE', 'sqlite');
-define('DB_NAME', 'charisma-mvc.db');
+define('DB_NAME', 'ch1.db');
 
 // MySQL example
 // define('DB_TYPE', 'mysql');
 // define('DB_HOST', '127.0.0.1');
-// define('DB_NAME', 'charisma-mvc');
+// define('DB_NAME', 'ch1');
 // define('DB_USER', 'root');
 // define('DB_PASS', 'mysql');
 
@@ -85,7 +85,7 @@ define('ACCESS_LOG_ENABLED',true);
 // define('SMTP_USERNAME','');
 // define('SMTP_PASSWORD','');
 // define('SMTP_SECURE','');               // `tls` or `ssl`
-// define('SMTP_FROM','charisma-mvc@localhost');
+// define('SMTP_FROM','ch1@localhost');
 // define('SMTP_FROM_NAME','Charisma MVC');
 
 /*** ACCESS LIMITATION ***/

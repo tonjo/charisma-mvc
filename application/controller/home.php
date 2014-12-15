@@ -16,52 +16,7 @@ class Home extends Controller
      */
     public function index()
     {
-        $this->render('home/dashboard');
-    }
-
-    public function ui()
-    {
-        $this->render('home/ui');
-    }
-
-    public function form()
-    {
-        $this->render('home/form');
-    }
-
-    public function chart()
-    {
-        $this->render('home/chart');
-    }
-
-    public function gallery()
-    {
-        $this->render('home/gallery');
-    }
-
-    public function table()
-    {
-        $this->render('home/table');
-    }
-
-    public function calendar()
-    {
-        $this->render('home/calendar');
-    }
-
-    public function grid()
-    {
-        $this->render('home/grid');
-    }
-
-    public function tour()
-    {
-        $this->render('home/tour');
-    }
-
-    public function icon()
-    {
-        $this->render('home/icon');
+        $this->render('home/home');
     }
 
     public function error()

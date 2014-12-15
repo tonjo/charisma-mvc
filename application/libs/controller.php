@@ -104,7 +104,6 @@ class Controller
                 $user_data['is_admin'] = false;
             }
         }
-        // myprint($user_data,1);
         $this->user_data = $user_data;
     }
 

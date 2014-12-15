@@ -59,14 +59,14 @@
 <body>
 
 {% if hide_menus != true  %}
-    {% include "_templates/header.twig" %}
+    {% include "charisma/header_charisma.twig" %}
 {% endif %}
 
 <div class="ch-container">
     <div class="row">
 
         {% if hide_menus != true %}
-            {% include "_templates/leftmenu.twig" %}
+            {% include "charisma/leftmenu_charisma.twig" %}
         {% endif %}
 
         <noscript>
@@ -85,6 +85,9 @@
             <div>
                 <ul class="breadcrumb">
                     <li>
+                        <a href="#">Charisma</a>
+                    </li>
+                    <li>
                         <a href="#">{{ breadcrumb_position }}</a>
                     </li>
                 </ul>
@@ -99,7 +102,29 @@
 </div><!--/fluid-row-->
 
 {% if hide_menus != true %}
+    <!-- Ad, you can remove it -->
+    <div class="row">
+        <div class="col-md-9 col-lg-9 col-xs-9  hidden-xs">
+            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <!-- Charisma Demo 2 -->
+            <ins class="adsbygoogle"
+                 style="display:inline-block;width:728px;height:90px"
+                 data-ad-client="ca-pub-5108790028230107"
+                 data-ad-slot="3193373905"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+        <div class="col-md-2 col-lg-3 col-sm-12 col-xs-12 donate">
+            <div>
+                <small>Help development of Charisma</small>
+            </div>
+            <a class="btn btn-default" href="http://flattr.com/thing/1507720/usmanhalalitcharisma-on-GitHub"
+               target="_blank"><i class="glyphicon glyphicon-usd green"></i> Donate</a>
+        </div>
 
+    </div>
+    <!-- Ad ends -->
     <hr>
 
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
