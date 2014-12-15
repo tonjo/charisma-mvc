@@ -16,7 +16,7 @@ class Home extends Controller
      */
     public function index()
     {
-        $this->render('home/home');
+        $this->render('home/home',$this->getUserData());
     }
 
     public function error()

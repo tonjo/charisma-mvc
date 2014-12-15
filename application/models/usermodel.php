@@ -261,10 +261,10 @@ class UserModel
             if ($remoteIP == "::1")
                 $remoteIP = "127.0.0.1";
             foreach ($user_rules as $subnet) {
-                if (isrange($subnet)) {
-                    if (IPrange_match($remoteIP,$subnet))
+                if (Util::isrange($subnet)) {
+                    if (Util::IPrange_match($remoteIP,$subnet))
                         return true;
-                } elseif (cidr_match($remoteIP,$subnet))
+                } elseif (Util::cidr_match($remoteIP,$subnet))
                         return true;
             }
         }

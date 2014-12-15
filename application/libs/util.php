@@ -1,5 +1,8 @@
 <?php
-    function myprint($what,$die = false) {
+
+Class Util {
+
+    public static function myprint($what,$die = false) {
         echo '<pre>';
         print_r($what);
         echo '</pre>';
@@ -16,7 +19,7 @@
      * @return bool Success status of minimum requirements check, default is false
      */
 
-    function performMinimumRequirementsCheck()
+    public static function performMinimumRequirementsCheck()
     {
         if (version_compare(PHP_VERSION, '5.3.7', '<')) {
             return "Questa applicazione richiede una versione PHP >= 5.3.7 !";
@@ -30,12 +33,12 @@
         return false;
     }
 
-    function random_str($length) {
+    public static function random_str($length) {
         return substr(md5(rand(0, 1000000)), 0, $length);
     }
 
     // Courtesy of Sam on stackoverflow
-    function cidr_match($ip, $cidr)
+    public static function cidr_match($ip, $cidr)
     {
         list($subnet, $mask) = explode('/', $cidr);
 
@@ -47,11 +50,11 @@
         return false;
     }
 
-    function isrange($net) {
+    public static function isrange($net) {
         return (strpos($net,'-'));
     }
 
-    function IPrange_match($testip,$testnet)
+    public static function IPrange_match($testip,$testnet)
     {
         $net = explode('.', $testnet);
         if (strpos($net[3],'-')) {
@@ -74,4 +77,6 @@
     //     $d = DateTime::createFromFormat($format, $date);
     //     return $d && $d->format($format) == $date;
     // }
+}
+
 ?>

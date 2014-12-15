@@ -2,6 +2,7 @@ TODO
 ====
 
   - Localization in TWIG templates!
+  - Maybe remove composer.lock from GIT? Ask web
 
 ISSUES
 ------

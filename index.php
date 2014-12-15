@@ -11,9 +11,9 @@
  */
 
 // load helper functions
-require 'application/config/util.php';
+require 'application/libs/util.php';
 
-if (($req = performMinimumRequirementsCheck()) !== true)
+if (($req = Util::performMinimumRequirementsCheck()) !== true)
     die($req);
 
 // load the (optional) Composer auto-loader
