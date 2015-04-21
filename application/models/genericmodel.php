@@ -13,7 +13,7 @@ class GenericModel
         try {
             $this->db = $db;
         } catch (PDOException $e) {
-            $this->set_last_error('Impossible to connect to DB');
+            $this->set_last_error(_('Can\'t connect to DB'));
         }
     }
 

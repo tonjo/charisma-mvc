@@ -1,0 +1,11 @@
+
+textarea#mail_extra_body {
+    height: 60px;
+    width: 400px;
+}
+
+span.admins {
+    padding: 2px;
+    margin: 3px;
+    background: #F0F09C;
+}

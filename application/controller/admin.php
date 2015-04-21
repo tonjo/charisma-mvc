@@ -14,24 +14,15 @@ class Admin extends Controller
     function __construct()
     {
         parent::__construct();
-        $this->MAIL_greetings = '<p><a href="'.REMOTE_URL.'">Documentazione</a></p>
-            <p>Cordialmente,<br>
-            Polymnia Venezia Srl<br>
-            Via Brenta Vecchia, 8<br>
-            30171 Mestre Venezia (VE)<br>
-            Tel &nbsp;&nbsp; 041 3036324<br>
-            Fax &nbsp;&nbsp; 041 3036323<br>
-            @ &nbsp;&nbsp;&nbsp;&nbsp; <a href="mailto:segreteria@polymniavenezia.it">segreteria@polymniavenezia.it</a></p>';
+        $this->MAIL_greetings = '<p>Mail da <a href="'.URL.'">'.URL.'</a></p>';
     }
 
     public function index() {
-        $this->redirect('admin/users');
     }
 
     public function users() {
         $this->check_admin();
 
-       // UPDATE users SET psw_expire=date('now','+2 month') WHERE user_rank>0;
         $context = $this->getUserData();
         $users = new UserModel();
         $context['users'] = $users->get_users();
@@ -42,23 +33,11 @@ class Admin extends Controller
             $context['notify_type'] = $notify['notify_type'];
         }
 
-        $odg = $this->loadModel('ODGModel');
-        // Ignoring errors if odg not existent
-        $current_odg = $odg->get_last_odg();
-        $context['odg'] = $current_odg;
-
 
         // Preparing mail
-        // $context['extra_body'] = "Gentili Signori,<br> su indicazione del Direttore, dr. Antonio Rigon, trasmetto il link alla documentazione inerente all'ordine del giorno del Consiglio di Amministrazione che si terrà il giorno $current_odg->date p.v. alle ore 10 presso la sede di Mestre.";
         $context['greetings'] =  $this->MAIL_greetings;
 
-        // TEMPORARY
-        try {
-            $this->render('admin/users',$context);
-        } catch  (Exception $e) {
-            $context['odg']->date='';
-            $this->render('admin/users',$context);
-        }
+        $this->render('admin/users',$context);
     }
 
     public function add_user() {
@@ -87,8 +66,8 @@ class Admin extends Controller
     }
 
     public function change_psw() {
-        // Disabling change password for users.
-        $this->check_admin();
+        // Uncomment if you want to disable change password for users.
+        // $this->check_admin();
         if (!empty($_POST)) {
             extract($_POST);
             $users = new UserModel();
@@ -115,17 +94,21 @@ class Admin extends Controller
 
     // ONLY generate clear psw for given array
     // ARRAY IS PER-REFERENCE !
-    public function generate_psw($userlist) {
+    public function generate_psw($userlist,$include_admins=true) {
         foreach ($userlist as $u) {
-            $rs = random_str(8);
-            $u->clear_psw=$rs;
+            if (($u->user_rank != ADMIN_RANK) || $include_admins)
+                $rs = random_str(8);
+            else $rs="";
         }
+        $u->clear_psw=$rs;
         return $userlist;
     }
 
     // Send mail to array of users, providing userlist with clear psw
     public function mail($userlist,$subject,$extra_body) {
         // Sending mails
+        if (!defined(SMTP_HOST))
+            return false;
         $mail = new PHPMailer;
         $mail->isSMTP();                    // Set mailer to use SMTP
         $mail->Host = SMTP_HOST;            // Specify main and backup SMTP servers
@@ -173,47 +156,49 @@ class Admin extends Controller
     public function massive_mail() {
         if (!empty($_POST)) {
             extract($_POST);
-            if (isset($odgname) && isset($odgdate)) {
-                if (!empty($odgname))
-                    $subject = "$odgname del $odgdate - invio documentazione";
-                else
-                    $subject = "Nuova password";
-                $users = new UserModel();
-                // A single user is given
-                if ($regenerateID !== "") {
-                    $single_user = $users->get_user($regenerateID);
-                    $userlist = array($single_user);
-                } else {
-                // Take users from POST var
-                    $userlist = [];
-                    foreach ($userlistID as $uid)
-                        array_push($userlist,$users->get_user($uid));
-                }
-                if (!empty($userlist)) {
-                    $userlist = $this->generate_psw($userlist);
-                    $is_psw_update = $users->set_psw_bulk($userlist);
-                    $all_mail_OK = $this->mail($userlist,$subject,$extra_body);
-                    $updatemsg = '';
-                    if ($all_mail_OK === true) {
-                        $mailmsg = "Invio mail avvenuto con successo";
-                        if (!$is_psw_update) {
-                            $mailmsg .= ', ma problemi nell\'impostazione delle nuove password, potrebbe essere necessario rigenerarle.';
-                            $notify_type = 'warning';
-                        } else
-                            $notify_type = 'info';
-                        $this->setNotify($mailmsg,$notify_type);
-                    } else {
-                        $notify = 'Errore nell\'invio delle mail agli indirizzi: ';
-                        foreach ($userlist as $u)
-                            if (isset($u->mail_error))
-                                $notify .= $u->user_email.' ('.$u->mail_error.'), ';
-                        $this->setNotify(rtrim($notify,', '),'danger');
-                    }
-                } else {
-                    $mailmsg = "Elenco vuoto. Nessuna mail inviata e nessuna password rigenerata";
-                    $notify_type = 'warning';
+            $subject = "Nuova password";
+            $users = new UserModel();
+            // A single user is given
+            if ($regenerateID !== "") {
+                $single_user = $users->get_user($regenerateID);
+                $userlist = array($single_user);
+            } else {
+            // Take users from POST var
+                $userlist = [];
+                foreach ($userlistID as $uid)
+                    array_push($userlist,$users->get_user($uid));
+            }
+            if (!empty($userlist)) {
+                if (count($userlist) == 1)
+                    $include_admins = true;
+                else $include_admins = false;  // Let change password for a single user even if is admin
+                // GENERATE ALL PASSWORDS RANDOMLY and create new array with users and psw
+                // IF it's a bulk operations (many users) NOT including admins (second param=false)
+                //    -> clear_psw will remain EMPTY
+                $userlist = $this->generate_psw($userlist,$include_admins);
+                $is_psw_update = $users->set_psw_bulk($userlist);
+                // myprint($userlist,1);
+                $all_mail_OK = $this->mail($userlist,$subject,$extra_body);
+                $updatemsg = '';
+                if ($all_mail_OK === true) {
+                    $mailmsg = "Invio mail avvenuto con successo";
+                    if (!$is_psw_update) {
+                        $mailmsg .= ', ma problemi nell\'impostazione delle nuove password, potrebbe essere necessario rigenerarle.';
+                        $notify_type = 'warning';
+                    } else
+                        $notify_type = 'info';
                     $this->setNotify($mailmsg,$notify_type);
+                } else {
+                    $notify = 'Errore nell\'invio delle mail agli indirizzi: ';
+                    foreach ($userlist as $u)
+                        if (isset($u->mail_error))
+                            $notify .= $u->user_email.' ('.$u->mail_error.'), ';
+                    $this->setNotify(rtrim($notify,', '),'danger');
                 }
+            } else {
+                $mailmsg = "Elenco vuoto. Nessuna mail inviata e nessuna password rigenerata";
+                $notify_type = 'warning';
+                $this->setNotify($mailmsg,$notify_type);
             }
         }
         $this->redirect('admin/users');
@@ -224,35 +209,12 @@ class Admin extends Controller
         $Nlogs = 100;
         $log = $this->loadModel('LogModel');
         $context = $this->getUserData();
-        $odg = $this->loadModel('ODGModel');
-        // Overheaded, I need only the odg ID
-        // Ignoring errors if odg not existent
-        $context['odg'] = $odg->get_last_odg();
         $context['logs'] = $log->get_last_access($Nlogs);
         if ($context['logs'] === false) {
-            $context['notify'] = 'Erore nella ricerca dei log. '.$log->get_last_error();
+            $context['notify'] = 'Errore nella ricerca dei log. '.$log->get_last_error();
             $context['notify_type'] = 'danger';
         }
         $context['Nlogs'] = $Nlogs;
         $this->render('admin/access_log',$context);
-    }
-
-    public function archive() {
-        $this->check_admin();
-        $odg = $this->loadModel('ODGModel');
-        $archived_ODG = $odg->get_archived_ODG();
-        if ($archived_ODG === false) {
-            $context['notify'] = 'Erore nella ricerca in archivio. '.$odg->get_last_error();
-            $context['notify_type'] = 'danger';
-        }
-        $context = $this->getUserData();
-        $context['archived_ODG'] = $archived_ODG;
-        $context['odg'] = $odg->get_last_odg();
-        $error = $odg->get_last_error();
-        if ($error != '') {
-            $context['notify'] = 'Errore nel recuperare l\'ODG corrente. '.$error;
-            $context['notify_type'] = 'danger';
-        }
-        $this->render('admin/archived_ODG',$context);
     }
 }

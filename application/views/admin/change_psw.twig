@@ -1,0 +1,50 @@
+{% extends "_templates/base.twig" %}
+{% set breadcrumbs = ['Gestione','Cambia password'] %}
+
+{% block leftmenu %}
+    {% include "_templates/leftmenu_management.twig" %}
+{% endblock leftmenu %}
+
+{% block content %}
+
+    <div class="center col-md-10 col-md-offset-1 row well well-sm">
+        <h4>Cambio password per {{ user_name }}</h4>
+    </div>
+
+    <form action="" role="form" method="post">
+        <div class=" row">
+            <div class="col-md-6 col-sm-6 col-xs-12 form-group">
+                <label for="old_password">Inserisci la vecchia password</label>
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-pencil green"></i></span>
+                    <input type="password" id="old_password" name="old_password" class="form-control" required>
+                </div>
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-6 col-sm-6 col-xs-12 form-group">
+                <label for="datepicker">Inserisci la nuova password </label>
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-pencil yellow"></i></span>
+                    <input type="password" id="new_password" name="new_password" class="form-control" required>
+                </div>
+            </div>
+        </div>
+        <div class="row form-group">
+            <div class="col-md-6 col-sm-6 col-xs-12 form-group">
+                <label for="datepicker">Ripeti la nuova password </label>
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-pencil red"></i></span>
+                    <input type="password" id="repeat_password" name="repeat_password" class="form-control" required>
+                </div>
+            </div>
+        </div>
+        <div class="row form-group">
+            <button type="submit" class="col-xs-offset-3 btn btn-info">
+                <i class="glyphicon glyphicon-ok"></i> Salva
+            </button>
+        </div>
+        <input type="hidden" name="user_name" value="{{ user_name }}" />
+    </form>
+
+{% endblock content %}

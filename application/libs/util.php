@@ -6,7 +6,7 @@ Class Util {
         echo '<pre>';
         print_r($what);
         echo '</pre>';
-        if (isset($die) && $die)
+        if ($die)
             die;
     }
 

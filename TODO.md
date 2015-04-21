@@ -1,8 +1,10 @@
 TODO
 ====
-
+  - server_host invece dell'accrocchio charisma.js con id per determinare il server
+  - VEDI LAMBERT controller.php riga 106, messo notify dentro setUserData -> non serve più controllare
   - Localization in TWIG templates!
   - Maybe remove composer.lock from GIT? Ask web
+  - Add APPNAME in config.php and use it in login, base, header, etc.
 
 ISSUES
 ------

@@ -38,7 +38,7 @@ require 'application/models/genericmodel.php';
 require 'application/models/usermodel.php';
 
 // load PHPMailer autoloader class
-//require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
+// require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
 
 // run the scss compiler every you the application is hit (in development)
 // TODO: build a switch for development/production
