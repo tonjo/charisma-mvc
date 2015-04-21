@@ -1,0 +1,258 @@
+<?php
+
+/**
+ * Class Admin
+ *
+ * Gestione Applicazione: riservata agli amministratori.
+ *
+ */
+class Admin extends Controller
+{
+
+    private $MAIL_greetings;
+
+    function __construct()
+    {
+        parent::__construct();
+        $this->MAIL_greetings = '<p><a href="'.REMOTE_URL.'">Documentazione</a></p>
+            <p>Cordialmente,<br>
+            Polymnia Venezia Srl<br>
+            Via Brenta Vecchia, 8<br>
+            30171 Mestre Venezia (VE)<br>
+            Tel &nbsp;&nbsp; 041 3036324<br>
+            Fax &nbsp;&nbsp; 041 3036323<br>
+            @ &nbsp;&nbsp;&nbsp;&nbsp; <a href="mailto:segreteria@polymniavenezia.it">segreteria@polymniavenezia.it</a></p>';
+    }
+
+    public function index() {
+        $this->redirect('admin/users');
+    }
+
+    public function users() {
+        $this->check_admin();
+
+       // UPDATE users SET psw_expire=date('now','+2 month') WHERE user_rank>0;
+        $context = $this->getUserData();
+        $users = new UserModel();
+        $context['users'] = $users->get_users();
+        $context['breadcrumbs'] = ['Gestione','Gestione Utenti'];
+        $notify = $this->getNotify(true);
+        if ($notify['notify']) {
+            $context['notify'] = $notify['notify'];
+            $context['notify_type'] = $notify['notify_type'];
+        }
+
+        $odg = $this->loadModel('ODGModel');
+        // Ignoring errors if odg not existent
+        $current_odg = $odg->get_last_odg();
+        $context['odg'] = $current_odg;
+
+
+        // Preparing mail
+        // $context['extra_body'] = "Gentili Signori,<br> su indicazione del Direttore, dr. Antonio Rigon, trasmetto il link alla documentazione inerente all'ordine del giorno del Consiglio di Amministrazione che si terrà il giorno $current_odg->date p.v. alle ore 10 presso la sede di Mestre.";
+        $context['greetings'] =  $this->MAIL_greetings;
+
+        // TEMPORARY
+        try {
+            $this->render('admin/users',$context);
+        } catch  (Exception $e) {
+            $context['odg']->date='';
+            $this->render('admin/users',$context);
+        }
+    }
+
+    public function add_user() {
+        $this->check_admin();
+        $users = new UserModel();
+        if ($users->doRegistration())
+            $notify_type = 'info';
+        else
+            $notify_type = 'danger';
+        // Give to UserModel registration's feedback
+        $this->setNotify($users->feedback,$notify_type);
+        $this->redirect('admin/users');
+    }
+
+    public function delete_user() {
+        $this->check_admin();
+        extract($_POST);
+        if (isset($deleteID)) {
+            $users = new UserModel();
+            if ($users->delete_user($deleteID))
+                $this->setNotify('Utente rimosso','info');
+            else
+                $this->setNotify('Errore nella rimozione dell\'utente. '.$users->get_last_error(),'danger');
+        }
+        $this->redirect('admin/users');
+    }
+
+    public function change_psw() {
+        // Disabling change password for users.
+        $this->check_admin();
+        if (!empty($_POST)) {
+            extract($_POST);
+            $users = new UserModel();
+            if ($users->checkPassword($user_name,$old_password)) {
+                if ($new_password === $repeat_password) {
+                    if ($users->set_psw($user_name,$new_password))
+                        $this->setNotify('Password cambiata','info');
+                    else
+                        $this->setNotify($users->feedback,'danger');
+                } else $this->setNotify('Le due password non coincidono','danger');
+            } else $this->setNotify($users->feedback,'danger');
+            $this->redirect('admin/change_psw');
+        } else {
+            $context = $this->getUserData();
+            $notify = $this->getNotify(true);
+            if ($notify['notify']) {
+                $context['notify'] = $notify['notify'];
+                $context['notify_type'] = $notify['notify_type'];
+            }
+            $this->render('admin/change_psw',$context);
+        }
+
+    }
+
+    // ONLY generate clear psw for given array
+    // ARRAY IS PER-REFERENCE !
+    public function generate_psw($userlist) {
+        foreach ($userlist as $u) {
+            $rs = random_str(8);
+            $u->clear_psw=$rs;
+        }
+        return $userlist;
+    }
+
+    // Send mail to array of users, providing userlist with clear psw
+    public function mail($userlist,$subject,$extra_body) {
+        // Sending mails
+        $mail = new PHPMailer;
+        $mail->isSMTP();                    // Set mailer to use SMTP
+        $mail->Host = SMTP_HOST;            // Specify main and backup SMTP servers
+        $mail->Port = SMTP_PORT;
+        $mail->SMTPAuth = SMTP_AUTH;        // Set SMTP authentication
+        if (SMTP_USERNAME !== '')
+            $mail->Username = SMTP_USERNAME;    // SMTP username
+        if (SMTP_PASSWORD !== '')
+            $mail->Password = SMTP_PASSWORD;    // SMTP password
+        if (SMTP_SECURE !== '')
+            $mail->SMTPSecure = SMTP_SECURE;    // Encryption, `tls` or `ssl` accepted
+
+        $mail->From = SMTP_FROM;
+        $mail->FromName = SMTP_FROM_NAME;
+        $mail->WordWrap = 80;
+        $mail->isHTML(true);                    // Set email format to HTML
+        $mail->CharSet = 'UTF-8';
+
+        $mail->Subject = $subject;
+        $all_mail_OK = true;
+        foreach ($userlist as $u) {
+            $mail->clearAddresses();
+            $mail->addAddress($u->user_email,$u->user_name);
+            $body = nl2br($extra_body)."<br>";
+            $body .= $this->MAIL_greetings;
+            $body .= '<br>Il tuo nome utente: <b>'.$u->user_name.'</b> oppure <b>'.$u->user_email.'</b><br>';
+            $body .= 'La tua password: <b>'.$u->clear_psw.'</b><br>';
+            $body .= "<hr>Non rispondere a questa mail, viene generata automaticamente.";
+            $mail->Body = $body;
+            $is_mail_OK = $mail->send();
+            $all_mail_OK = $all_mail_OK && $is_mail_OK;
+
+            // If mail errors set in property (adding it)
+            if (!$is_mail_OK)
+                $u->mail_error = $mail->ErrorInfo;
+        }
+        return $all_mail_OK;
+    }
+
+    /**
+     *  Generate and set password for all users, send mail to everyone with the meeting's info
+     *  In case of POST errors, SILENTLY redirect
+     *  NOTE: Can be used also with one single destination
+     */
+    public function massive_mail() {
+        if (!empty($_POST)) {
+            extract($_POST);
+            if (isset($odgname) && isset($odgdate)) {
+                if (!empty($odgname))
+                    $subject = "$odgname del $odgdate - invio documentazione";
+                else
+                    $subject = "Nuova password";
+                $users = new UserModel();
+                // A single user is given
+                if ($regenerateID !== "") {
+                    $single_user = $users->get_user($regenerateID);
+                    $userlist = array($single_user);
+                } else {
+                // Take users from POST var
+                    $userlist = [];
+                    foreach ($userlistID as $uid)
+                        array_push($userlist,$users->get_user($uid));
+                }
+                if (!empty($userlist)) {
+                    $userlist = $this->generate_psw($userlist);
+                    $is_psw_update = $users->set_psw_bulk($userlist);
+                    $all_mail_OK = $this->mail($userlist,$subject,$extra_body);
+                    $updatemsg = '';
+                    if ($all_mail_OK === true) {
+                        $mailmsg = "Invio mail avvenuto con successo";
+                        if (!$is_psw_update) {
+                            $mailmsg .= ', ma problemi nell\'impostazione delle nuove password, potrebbe essere necessario rigenerarle.';
+                            $notify_type = 'warning';
+                        } else
+                            $notify_type = 'info';
+                        $this->setNotify($mailmsg,$notify_type);
+                    } else {
+                        $notify = 'Errore nell\'invio delle mail agli indirizzi: ';
+                        foreach ($userlist as $u)
+                            if (isset($u->mail_error))
+                                $notify .= $u->user_email.' ('.$u->mail_error.'), ';
+                        $this->setNotify(rtrim($notify,', '),'danger');
+                    }
+                } else {
+                    $mailmsg = "Elenco vuoto. Nessuna mail inviata e nessuna password rigenerata";
+                    $notify_type = 'warning';
+                    $this->setNotify($mailmsg,$notify_type);
+                }
+            }
+        }
+        $this->redirect('admin/users');
+    }
+
+    public function access_log() {
+        $this->check_admin();
+        $Nlogs = 100;
+        $log = $this->loadModel('LogModel');
+        $context = $this->getUserData();
+        $odg = $this->loadModel('ODGModel');
+        // Overheaded, I need only the odg ID
+        // Ignoring errors if odg not existent
+        $context['odg'] = $odg->get_last_odg();
+        $context['logs'] = $log->get_last_access($Nlogs);
+        if ($context['logs'] === false) {
+            $context['notify'] = 'Erore nella ricerca dei log. '.$log->get_last_error();
+            $context['notify_type'] = 'danger';
+        }
+        $context['Nlogs'] = $Nlogs;
+        $this->render('admin/access_log',$context);
+    }
+
+    public function archive() {
+        $this->check_admin();
+        $odg = $this->loadModel('ODGModel');
+        $archived_ODG = $odg->get_archived_ODG();
+        if ($archived_ODG === false) {
+            $context['notify'] = 'Erore nella ricerca in archivio. '.$odg->get_last_error();
+            $context['notify_type'] = 'danger';
+        }
+        $context = $this->getUserData();
+        $context['archived_ODG'] = $archived_ODG;
+        $context['odg'] = $odg->get_last_odg();
+        $error = $odg->get_last_error();
+        if ($error != '') {
+            $context['notify'] = 'Errore nel recuperare l\'ODG corrente. '.$error;
+            $context['notify_type'] = 'danger';
+        }
+        $this->render('admin/archived_ODG',$context);
+    }
+}

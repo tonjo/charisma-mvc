@@ -21,7 +21,7 @@ if (file_exists('vendor/autoload.php')) {
     require 'vendor/autoload.php';
 }
 else {
-    die("<b>Errors</b>, maybe you should do <pre># composer install</pre> and run  SQL scripts in <b>application/_install</b>");
+    die("<b>Errors</b>, maybe you should read README.md file. You must perform actions like <pre># composer install</pre> and run  SQL scripts in <b>application/_install</b>");
 }
 
 // load application config (error reporting etc.)

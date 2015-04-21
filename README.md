@@ -84,6 +84,7 @@ I recommend you the well-explained [php-mvc-advanced tutorial](https://github.co
 
 2. Don't use the same name for class and method, as this might trigger an (unintended) `__construct` of the class.
    This is really weird behaviour, but documented here: [php.net - Constructors and Destructors](http://php.net/manual/en/language.oop5.decon.php).
+3. Change the default theme in charisma.js file
 
 ## Add external libraries via Composer
 

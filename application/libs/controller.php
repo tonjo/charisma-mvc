@@ -51,7 +51,7 @@ class Controller
                 $this->db = new PDO(DB_TYPE . ':' . DB_NAME, '','');
                 $this->db->exec('PRAGMA foreign_keys = ON');
             } catch (PDOException $e) {
-                die('ERROR opening database');
+                die('ERROR opening database: '.$e->getMessage());
             }
         }
         else

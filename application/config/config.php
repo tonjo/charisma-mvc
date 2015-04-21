@@ -31,7 +31,7 @@ textdomain($messages);
 * Leave the $_SERVER line if you want an "adaptive" URL scheme
  */
 // define('URL', 'http://127.0.0.1/ch1/');
-define('URL', 'http://'.$_SERVER['HTTP_HOST'].'/ch1/');
+define('URL', 'http://'.$_SERVER['HTTP_HOST'].'/charisma-mvc/');
 
 /**
  * Configuration for: Database
@@ -40,7 +40,7 @@ define('URL', 'http://'.$_SERVER['HTTP_HOST'].'/ch1/');
 
 // SQLite example: no DB_HOST, DB_USER and DB_PASS, just DB_TYPE and DB_NAME
 define('DB_TYPE', 'sqlite');
-define('DB_NAME', 'ch1.db');
+define('DB_NAME', 'charisma-mvc.db');
 
 // MySQL example
 // define('DB_TYPE', 'mysql');
