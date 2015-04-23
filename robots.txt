@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: bower_components
+Disallow: locale
+Disallow: application
+
