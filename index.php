@@ -13,14 +13,14 @@
 // load helper functions
 require 'application/libs/util.php';
 
-if (($req = Util::performMinimumRequirementsCheck()) !== true)
+if (($req = Util::performMinimumRequirementsCheck()) !== true) {
     die($req);
+}
 
 // load the (optional) Composer auto-loader
 if (file_exists('vendor/autoload.php')) {
     require 'vendor/autoload.php';
-}
-else {
+} else {
     die("<b>Errors</b>, maybe you should read README.md file. You must perform actions like <pre># composer install</pre> and run  SQL scripts in <b>application/_install</b>");
 }
 

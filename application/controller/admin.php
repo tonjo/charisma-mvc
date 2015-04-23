@@ -6,21 +6,23 @@
  * Gestione Applicazione: riservata agli amministratori.
  *
  */
-class Admin extends Controller
+class admin extends Controller
 {
 
     private $MAIL_greetings;
 
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->MAIL_greetings = '<p>Mail da <a href="'.URL.'">'.URL.'</a></p>';
     }
 
-    public function index() {
+    public function index()
+    {
     }
 
-    public function users() {
+    public function users()
+    {
         $this->check_admin();
 
         $context = $this->getUserData();
@@ -33,39 +35,42 @@ class Admin extends Controller
             $context['notify_type'] = $notify['notify_type'];
         }
 
-
         // Preparing mail
         $context['greetings'] =  $this->MAIL_greetings;
 
-        $this->render('admin/users',$context);
+        $this->render('admin/users', $context);
     }
 
-    public function add_user() {
+    public function add_user()
+    {
         $this->check_admin();
         $users = new UserModel();
-        if ($users->doRegistration())
+        if ($users->doRegistration()) {
             $notify_type = 'info';
-        else
+        } else {
             $notify_type = 'danger';
+        }
         // Give to UserModel registration's feedback
-        $this->setNotify($users->feedback,$notify_type);
+        $this->setNotify($users->feedback, $notify_type);
         $this->redirect('admin/users');
     }
 
-    public function delete_user() {
+    public function delete_user()
+    {
         $this->check_admin();
         extract($_POST);
         if (isset($deleteID)) {
             $users = new UserModel();
             if ($users->delete_user($deleteID))
-                $this->setNotify('Utente rimosso','info');
+                $this->setNotify('Utente rimosso', 'info');
             else
-                $this->setNotify('Errore nella rimozione dell\'utente. '.$users->get_last_error(),'danger');
+                $this->setNotify('Errore nella rimozione dell\'utente. '.$users->get_last_error(), 'danger');
         }
         $this->redirect('admin/users');
     }
 
-    public function change_psw() {
+    public function change_psw()
+    {
         // Uncomment if you want to disable change password for users.
         // $this->check_admin();
         if (!empty($_POST)) {
@@ -94,22 +99,25 @@ class Admin extends Controller
 
     // ONLY generate clear psw for given array
     // ARRAY IS PER-REFERENCE !
-    public function generate_psw($userlist,$include_admins=true) {
+    public function generate_psw($userlist,$include_admins=true)
+    {
         foreach ($userlist as $u) {
             if (($u->user_rank != ADMIN_RANK) || $include_admins)
                 $rs = random_str(8);
             else $rs="";
         }
         $u->clear_psw=$rs;
+
         return $userlist;
     }
 
     // Send mail to array of users, providing userlist with clear psw
-    public function mail($userlist,$subject,$extra_body) {
+    public function mail($userlist,$subject,$extra_body)
+    {
         // Sending mails
         if (!defined(SMTP_HOST))
             return false;
-        $mail = new PHPMailer;
+        $mail = new PHPMailer();
         $mail->isSMTP();                    // Set mailer to use SMTP
         $mail->Host = SMTP_HOST;            // Specify main and backup SMTP servers
         $mail->Port = SMTP_PORT;
@@ -145,6 +153,7 @@ class Admin extends Controller
             if (!$is_mail_OK)
                 $u->mail_error = $mail->ErrorInfo;
         }
+
         return $all_mail_OK;
     }
 
@@ -153,7 +162,8 @@ class Admin extends Controller
      *  In case of POST errors, SILENTLY redirect
      *  NOTE: Can be used also with one single destination
      */
-    public function massive_mail() {
+    public function massive_mail()
+    {
         if (!empty($_POST)) {
             extract($_POST);
             $subject = "Nuova password";
@@ -204,7 +214,8 @@ class Admin extends Controller
         $this->redirect('admin/users');
     }
 
-    public function access_log() {
+    public function access_log()
+    {
         $this->check_admin();
         $Nlogs = 100;
         $log = $this->loadModel('LogModel');

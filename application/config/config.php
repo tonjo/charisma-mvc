@@ -30,7 +30,6 @@ textdomain($messages);
  * Put your URL here, for local development "127.0.0.1" or "localhost" (plus sub-folder) is fine
 * Leave the $_SERVER line if you want an "adaptive" URL scheme
  */
-// define('URL', 'http://127.0.0.1/ch1/');
 define('URL', 'http://'.$_SERVER['HTTP_HOST'].'/charisma-mvc/');
 
 /**
@@ -45,7 +44,7 @@ define('DB_NAME', 'charisma-mvc.db');
 // MySQL example
 // define('DB_TYPE', 'mysql');
 // define('DB_HOST', '127.0.0.1');
-// define('DB_NAME', 'ch1');
+// define('DB_NAME', 'charisma-mvc');
 // define('DB_USER', 'root');
 // define('DB_PASS', 'mysql');
 
@@ -70,21 +69,23 @@ define('PATH_VIEW_FILE_TYPE', '.twig');
  * if ($rank <= EDITOR_RANK) ...
  */
 
-define('ADMIN_RANK',0);
-define('USER_RANK',1);
-define('DEFAULT_RANK',USER_RANK);
+define('ADMIN_RANK', 0);
+define('USER_RANK', 1);
+define('DEFAULT_RANK', USER_RANK);
 
 // Enable access log in `log` table.
-define('ACCESS_LOG_ENABLED',true);
+define('ACCESS_LOG_ENABLED', true);
 
-// Mail configuration
+// Mail configuration. If you use this, remember to uncomment the following line
+//  in index.php: require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
+//
 // define('SMTP_HOST','localhost');
 // define('SMTP_PORT',25);
 // define('SMTP_AUTH',false);              // Enable SMTP authentication
 // define('SMTP_USERNAME','');
 // define('SMTP_PASSWORD','');
 // define('SMTP_SECURE','');               // `tls` or `ssl`
-// define('SMTP_FROM','ch1@localhost');
+// define('SMTP_FROM','charisma-mvc@localhost');
 // define('SMTP_FROM_NAME','Charisma MVC');
 
 /*** ACCESS LIMITATION ***/
